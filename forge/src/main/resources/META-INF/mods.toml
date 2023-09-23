@@ -11,7 +11,7 @@ authors = ["TechTastic"]
 description = '''
 A KubeJS addon for VS2!
 '''
-logoFile = "assests/kubevs/icon.png"
+logoFile = "assests/kubevs/logo.png"
 
 [[dependencies.kubevs]]
 modId = "forge"
