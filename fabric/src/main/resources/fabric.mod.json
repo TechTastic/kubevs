@@ -1,46 +1,31 @@
 {
   "schemaVersion": 1,
-  "id": "vs_eureka",
+  "id": "kubevs",
   "version": "${version}",
-  "name": "VS Eureka Mod",
-  "description": "Basically Archimedes Ships, but with VS2 as the backend!",
+  "name": "KubeVS",
+  "description": "A KubeJS addon for VS2!",
   "authors": [
-    "ewoudje",
-    "Tri0de",
-    "Rubydesic"
-  ],
-  "contributors": [
-    "Copper",
-    "Anarava",
-    "VS Discord"
+    "TechTastic"
   ],
   "contact": {
     "homepage": "https://valkyrienskies.org/",
     "sources": "https://github.com/ValkyrienSkies/Eureka"
   },
   "license": "Apache-2.0",
-  "icon": "assets/vs_eureka/icon.png",
+  "icon": "assets/kubevs/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "org.valkyrienskies.eureka.fabric.EurekaModFabric"
-    ],
-    "client": [
-      "org.valkyrienskies.eureka.fabric.EurekaModFabric${'$'}Client"
-    ],
     "preLaunch": [
-      "org.valkyrienskies.eureka.fabric.ValkyrienPreLaunch"
-    ],
-    "modmenu": [
-      "org.valkyrienskies.eureka.fabric.EurekaModFabric${'$'}ModMenu"
+      "io.github.techtastic.kubevs.fabric.ValkyrienPreLaunch"
     ]
   },
   "mixins": [
-    "vs_eureka-common.mixins.json",
-    "vs_eureka.mixins.json"
+    "kubevs-common.mixins.json",
+    "kubevs.mixins.json"
   ],
   "depends": {
     "minecraft": ">=1.18.2",
-    "valkyrienskies": ">=${vs2_version}"
+    "valkyrienskies": ">=2.1.0-beta.14",
+    "architectury": ">=4.11.91"
   }
 }
