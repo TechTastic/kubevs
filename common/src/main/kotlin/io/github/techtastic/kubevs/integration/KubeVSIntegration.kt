@@ -37,7 +37,7 @@ class KubeVSIntegration: KubeJSPlugin() {
 
         VSEvents.shipLoadEvent.on(this::onShipLoadServer)
         EventHandlers.applyForcesEvent.on(this::onApplyForces)
-        EventHandlers.shipCreationEvent.on(this::onShipCreation)
+        //EventHandlers.shipCreationEvent.on(this::onShipCreation)
     }
 
     override fun clientInit() {
@@ -130,9 +130,9 @@ class KubeVSIntegration: KubeJSPlugin() {
         return EventResult.pass()
     }
 
-    fun onShipCreation(event: EventHandlers.ShipCreationEvent): EventResult {
-        if (KubeVSShipCreationEvent(event).post(ScriptType.SERVER, "vs.shipCreation", event.serverShip.id.toString()))
-            return EventResult.interruptTrue()
-        return EventResult.pass()
-    }
+    //fun onShipCreation(event: EventHandlers.ShipCreationEvent): EventResult {
+    //    if (KubeVSShipCreationEvent(event).post(ScriptType.SERVER, "vs.shipCreation", event.serverShip.id.toString()))
+    //        return EventResult.interruptTrue()
+    //    return EventResult.pass()
+    //}
 }
