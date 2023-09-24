@@ -25,6 +25,10 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
 }
 
+remapJar {
+    classifier "common"
+}
+
 publishing {
     publications {
         mavenCommon(MavenPublication) {
