@@ -2,7 +2,6 @@ package io.github.techtastic.kubevs.integration
 
 import dev.architectury.event.EventResult
 import dev.latvian.mods.kubejs.KubeJSPlugin
-import dev.latvian.mods.kubejs.generator.DataJsonGenerator
 import dev.latvian.mods.kubejs.level.LevelJS
 import dev.latvian.mods.kubejs.player.PlayerDataJS
 import dev.latvian.mods.kubejs.player.PlayerJS
@@ -10,40 +9,41 @@ import dev.latvian.mods.kubejs.script.AttachDataEvent
 import dev.latvian.mods.kubejs.script.BindingsEvent
 import dev.latvian.mods.kubejs.script.ScriptType
 import dev.latvian.mods.kubejs.server.ServerJS
+import dev.latvian.mods.kubejs.util.ClassFilter
 import io.github.techtastic.kubevs.KubeVSJavaIntegration
-import io.github.techtastic.kubevs.events.ShipControlEvents
+import io.github.techtastic.kubevs.events.KubeVSApplyForcesEvent
+import io.github.techtastic.kubevs.events.KubeVSShipCreationEvent
+import io.github.techtastic.kubevs.events.KubeVSShipLoadServerEvent
+import io.github.techtastic.kubevs.util.BlockStateInfoJS
+import io.github.techtastic.kubevs.util.ShipAssemblyCallback
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
-import org.joml.Vector3d
-import org.joml.Vector3dc
-import org.joml.Vector3f
-import org.joml.Vector3fc
-import org.joml.Vector3i
-import org.joml.Vector3ic
-import org.joml.primitives.AABBd
-import org.joml.primitives.AABBdc
-import org.joml.primitives.AABBf
-import org.joml.primitives.AABBfc
-import org.joml.primitives.AABBi
-import org.joml.primitives.AABBic
+import org.joml.*
+import org.joml.primitives.*
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.LoadedShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.IEntityDraggingInformationProvider
-import org.valkyrienskies.mod.mixinducks.world.entity.PlayerDuck
 
 class KubeVSIntegration: KubeJSPlugin() {
     override fun init() {
         super.init()
 
-        VSEvents.shipLoadEvent.on(this::onShipLoad)
-        ShipControlEvents.applyForcesEvent.on(this::onApplyForces)
+        VSEvents.shipLoadEvent.on(this::onShipLoadServer)
+        EventHandlers.applyForcesEvent.on(this::onApplyForces)
+        EventHandlers.shipCreationEvent.on(this::onShipCreation)
+    }
+
+    override fun clientInit() {
+        super.clientInit()
+
+        VSEvents.shipLoadEventClient
     }
 
     override fun addBindings(event: BindingsEvent) {
@@ -66,11 +66,21 @@ class KubeVSIntegration: KubeJSPlugin() {
         event.add("AABBfc", AABBfc::class.java)
 
         event.add("DenseBlockPosSet", DenseBlockPosSet::class.java)
-        event.add("ShipTransform", ShipTransform::class.java)
+
+        if (event.type.isServer) {
+            event.add("BlockStateInfo", BlockStateInfoJS::class.java)
+            event.addFunction("createNewShipWithBlocks", ShipAssemblyCallback(), BlockPos::class.java, DenseBlockPosSet::class.java, ServerLevel::class.java)
+        }
 
         KubeVSJavaIntegration.addBindings(event)
 
         super.addBindings(event)
+    }
+
+    override fun addClasses(type: ScriptType, filter: ClassFilter) {
+        filter.deny("org.valkyrienskies.mod.common.config")
+
+        super.addClasses(type, filter)
     }
 
     override fun attachServerData(event: AttachDataEvent<ServerJS>) {
@@ -108,14 +118,20 @@ class KubeVSIntegration: KubeJSPlugin() {
         super.attachPlayerData(event)
     }
 
-    fun onShipLoad(event: VSEvents.ShipLoadEvent): EventResult {
-        if (KubeVSShipLoadEvent(event).post(ScriptType.SERVER, "vs.loadShip", event.ship.id.toString()))
+    fun onShipLoadServer(event: VSEvents.ShipLoadEvent): EventResult {
+        if (KubeVSShipLoadServerEvent(event).post(ScriptType.SERVER, "vs.loadShip", event.ship.id.toString()))
             return EventResult.interruptTrue()
         return EventResult.pass()
     }
 
-    fun onApplyForces(event: ShipControlEvents.ApplyForcesEvent): EventResult? {
+    fun onApplyForces(event: EventHandlers.ApplyForcesEvent): EventResult {
         if (KubeVSApplyForcesEvent(event).post(ScriptType.SERVER, "vs.applyForces", event.physShip.id.toString()))
+            return EventResult.interruptTrue()
+        return EventResult.pass()
+    }
+
+    fun onShipCreation(event: EventHandlers.ShipCreationEvent): EventResult {
+        if (KubeVSShipCreationEvent(event).post(ScriptType.SERVER, "vs.shipCreation", event.serverShip.id.toString()))
             return EventResult.interruptTrue()
         return EventResult.pass()
     }
