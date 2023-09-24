@@ -40,3 +40,10 @@ mandatory = true
 versionRange = "[4.11.91,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.kubevs]]
+modId = "kubejs"
+mandatory = true
+versionRange = "[1802.5.5-build.569,)"
+ordering = "AFTER"
+side = "BOTH"

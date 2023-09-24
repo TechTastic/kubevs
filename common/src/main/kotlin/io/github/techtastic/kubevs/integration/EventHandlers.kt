@@ -13,10 +13,4 @@ object EventHandlers {
     data class ApplyForcesEvent(val physShip: PhysShipImpl) {
         companion object : EventEmitter<ApplyForcesEvent> by applyForcesEvent
     }
-
-    val shipCreationEvent = EventEmitterImpl<ShipCreationEvent>()
-
-    data class ShipCreationEvent(val serverShip: ServerShip, val center: BlockPos, val serverLevel: ServerLevel) {
-        companion object : EventEmitter<ShipCreationEvent> by shipCreationEvent
-    }
 }
