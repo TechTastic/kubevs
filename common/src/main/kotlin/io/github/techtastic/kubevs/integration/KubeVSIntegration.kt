@@ -11,14 +11,9 @@ import dev.latvian.mods.kubejs.script.ScriptType
 import dev.latvian.mods.kubejs.server.ServerJS
 import dev.latvian.mods.kubejs.util.ClassFilter
 import io.github.techtastic.kubevs.KubeVSJavaIntegration
-import io.github.techtastic.kubevs.events.KubeVSApplyForcesEvent
-import io.github.techtastic.kubevs.events.KubeVSShipLoadClientEvent
-import io.github.techtastic.kubevs.events.KubeVSShipLoadServerEvent
-import io.github.techtastic.kubevs.events.KubeVSShipRenderStartEvent
-import io.github.techtastic.kubevs.registration.BlockStateInfoProviderBuilder
-import io.github.techtastic.kubevs.registration.KubeVSBuilderTypes
+import io.github.techtastic.kubevs.events.*
 import io.github.techtastic.kubevs.ship.ShipControlJS
-import io.github.techtastic.kubevs.util.BlockStateInfoJS
+import io.github.techtastic.kubevs.util.BlockTypeJS
 import io.github.techtastic.kubevs.util.ShipAssemblyCallback
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
@@ -31,6 +26,8 @@ import org.valkyrienskies.core.api.ships.LoadedShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
+import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
+import org.valkyrienskies.core.impl.game.ships.ShipObjectServer
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
@@ -40,10 +37,10 @@ class KubeVSIntegration: KubeJSPlugin() {
     override fun init() {
         super.init()
 
-        KubeVSBuilderTypes.BLOCK_INFO_PROVIDER.addType("basic", BlockStateInfoProviderBuilder::class.java, ::BlockStateInfoProviderBuilder)
-
         VSEvents.shipLoadEvent.on(this::onShipLoadServer)
-        EventHandlers.applyForcesEvent.on(this::onApplyForces)
+        KubeVSEvents.blockStateInfoEvent.on(this::onBlockStateInfo)
+        KubeVSEvents.shipApplyForcesEvent.on(this::onShipApplyForces)
+        KubeVSEvents.shipTickEvent.on(this::onShipTick)
     }
 
     override fun clientInit() {
@@ -74,11 +71,10 @@ class KubeVSIntegration: KubeJSPlugin() {
 
         event.add("DenseBlockPosSet", DenseBlockPosSet::class.java)
 
-        event.add("BlockType", BlockStateInfoProviderBuilder.Type::class.java)
+        event.add("BlockType", BlockTypeJS::class.java)
         event.add("ShipControl", ShipControlJS::class.java)
 
         if (event.type.isServer) {
-            event.add("BlockStateInfo", BlockStateInfoJS::class.java)
             event.addFunction("createNewShipWithBlocks", ShipAssemblyCallback(), BlockPos::class.java, DenseBlockPosSet::class.java, ServerLevel::class.java)
         }
 
@@ -89,6 +85,10 @@ class KubeVSIntegration: KubeJSPlugin() {
 
     override fun addClasses(type: ScriptType, filter: ClassFilter) {
         filter.deny("org.valkyrienskies.mod.common.config")
+        filter.deny("io.github.techtastic.kubevs.registration.KubeVSBlockStateInfoProvider.INSTANCE.getPriority")
+        filter.deny("io.github.techtastic.kubevs.registration.KubeVSBlockStateInfoProvider.INSTANCE.getBlockStateMass")
+        filter.deny("io.github.techtastic.kubevs.registration.KubeVSBlockStateInfoProvider.INSTANCE.getBlockStateType")
+        filter.deny("io.github.techtastic.kubevs.registration.KubeVSBlockStateInfoProvider.INSTANCE.register")
 
         super.addClasses(type, filter)
     }
@@ -128,17 +128,33 @@ class KubeVSIntegration: KubeJSPlugin() {
         super.attachPlayerData(event)
     }
 
+    // Server Event Methods
+
     fun onShipLoadServer(event: VSEvents.ShipLoadEvent): EventResult {
         if (KubeVSShipLoadServerEvent(event).post(ScriptType.SERVER, "vs.ship.load", event.ship.id.toString()))
             return EventResult.interruptTrue()
         return EventResult.pass()
     }
 
-    fun onApplyForces(event: EventHandlers.ApplyForcesEvent): EventResult {
-        if (KubeVSApplyForcesEvent(event).post(ScriptType.SERVER, "vs.applyForces", event.physShip.id.toString()))
+    fun onBlockStateInfo(event: KubeVSEvents.BlockStateInfoEvent): EventResult {
+        if (KubeVSBlockStateInfoEvent(event).post(ScriptType.SERVER, "vs.info.init"))
             return EventResult.interruptTrue()
         return EventResult.pass()
     }
+
+    fun onShipApplyForces(event: KubeVSEvents.ShipApplyForcesEvent): EventResult {
+        if (KubeVSShipApplyForcesEvent(event).post(ScriptType.SERVER, "vs.ship.phys_tick", event.physShip.id.toString()))
+            return EventResult.interruptTrue()
+        return EventResult.pass()
+    }
+
+    fun onShipTick(event: KubeVSEvents.ShipTickEvent): EventResult {
+        if (KubeVSShipTickEvent(event).post(ScriptType.SERVER, "vs.ship.game_tick", event.serverShip.id.toString()))
+            return EventResult.interruptTrue()
+        return EventResult.pass()
+    }
+
+    // Client Event Methods
 
     fun onShipRender(event: VSGameEvents.ShipRenderEvent): EventResult {
         if (KubeVSShipRenderStartEvent(event).post(ScriptType.CLIENT, "vs.ship.render", event.ship.id.toString()))
