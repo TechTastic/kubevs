@@ -10,6 +10,7 @@ import dev.latvian.mods.kubejs.script.BindingsEvent
 import dev.latvian.mods.kubejs.script.ScriptType
 import dev.latvian.mods.kubejs.server.ServerJS
 import dev.latvian.mods.kubejs.util.ClassFilter
+import dev.latvian.mods.kubejs.util.ConsoleJS
 import io.github.techtastic.kubevs.KubeVSJavaIntegration
 import io.github.techtastic.kubevs.events.*
 import io.github.techtastic.kubevs.ship.ShipControlJS
@@ -17,6 +18,7 @@ import io.github.techtastic.kubevs.util.BlockTypeJS
 import io.github.techtastic.kubevs.util.ShipAssemblyCallback
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Registry
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import org.joml.*
@@ -26,8 +28,6 @@ import org.valkyrienskies.core.api.ships.LoadedShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
-import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
-import org.valkyrienskies.core.impl.game.ships.ShipObjectServer
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
@@ -38,7 +38,6 @@ class KubeVSIntegration: KubeJSPlugin() {
         super.init()
 
         VSEvents.shipLoadEvent.on(this::onShipLoadServer)
-        KubeVSEvents.blockStateInfoEvent.on(this::onBlockStateInfo)
         KubeVSEvents.shipApplyForcesEvent.on(this::onShipApplyForces)
         KubeVSEvents.shipTickEvent.on(this::onShipTick)
     }
@@ -48,6 +47,18 @@ class KubeVSIntegration: KubeJSPlugin() {
 
         VSEvents.shipLoadEventClient.on(this::onShipLoad)
         VSGameEvents.postRenderShip.on(this::onShipRender)
+    }
+
+    override fun initStartup() {
+        super.initStartup()
+
+        val event = KubeJSBlockStateInfoRegistryEvent(mutableListOf())
+        event.post(ScriptType.STARTUP, "vs.info_providers")
+
+        event.getProviders().forEach {
+            ConsoleJS.STARTUP.log("Registering Provider: ${it.id}\nRegistry: ${BlockStateInfo.REGISTRY}\nProvider: ${it.sortPriority}, ${it.mass}, and ${it.type}")
+            Registry.register(BlockStateInfo.REGISTRY, it.id, it)
+        }
     }
 
     override fun addBindings(event: BindingsEvent) {
@@ -132,12 +143,6 @@ class KubeVSIntegration: KubeJSPlugin() {
 
     fun onShipLoadServer(event: VSEvents.ShipLoadEvent): EventResult {
         if (KubeVSShipLoadServerEvent(event).post(ScriptType.SERVER, "vs.ship.load", event.ship.id.toString()))
-            return EventResult.interruptTrue()
-        return EventResult.pass()
-    }
-
-    fun onBlockStateInfo(event: KubeVSEvents.BlockStateInfoEvent): EventResult {
-        if (KubeVSBlockStateInfoEvent(event).post(ScriptType.SERVER, "vs.info.init"))
             return EventResult.interruptTrue()
         return EventResult.pass()
     }
