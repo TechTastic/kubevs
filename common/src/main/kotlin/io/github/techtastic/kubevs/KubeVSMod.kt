@@ -9,4 +9,8 @@ object KubeVSMod {
     fun init() {
         KubeVSBlockStateInfoProvider.register()
     }
+
+    @JvmStatic
+    fun initClient() {
+    }
 }

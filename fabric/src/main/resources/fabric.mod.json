@@ -16,7 +16,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "io.github.techtastic.kubevs.fabric.KubeVSFabric"
+      "io.github.techtastic.kubevs.fabric.KubeVSModFabric"
+    ],
+    "client": [
+      "io.github.techtastic.kubevs.fabric.KubeVSModFabric${'$'}Client"
     ],
     "preLaunch": [
       "io.github.techtastic.kubevs.fabric.ValkyrienPreLaunch"
@@ -28,7 +31,7 @@
   ],
   "depends": {
     "minecraft": ">=1.18.2",
-    "valkyrienskies": ">=2.1.0-beta.14",
-    "architectury": ">=4.11.91"
+    "valkyrienskies": ">=${vs2_version}",
+    "fabricloader": ">=0.14.21"
   }
 }

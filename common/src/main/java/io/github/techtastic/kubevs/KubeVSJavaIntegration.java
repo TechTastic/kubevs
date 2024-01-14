@@ -2,7 +2,7 @@ package io.github.techtastic.kubevs;
 
 import dev.latvian.mods.kubejs.script.BindingsEvent;
 import io.github.techtastic.kubevs.util.BlockStateInfoJS;
-import org.valkyrienskies.core.impl.util.VectorConversionsKt;
+import org.valkyrienskies.core.util.VectorConversionsKt;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 

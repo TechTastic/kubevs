@@ -34,13 +34,6 @@ loom {
     }
 }
 
-repositories {
-    maven {
-        name = 'Kotlin for Forge'
-        url = 'https://thedarkcolour.github.io/KotlinForForge/'
-    }
-}
-
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
@@ -50,22 +43,23 @@ configurations {
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.forge_version}"
+    forge "net.minecraftforge:forge:$forge_version"
 
-    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+    include(modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}")
 
-    modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}")
-    implementation("org.valkyrienskies.core:api:${rootProject.vs_core_version}")
-    implementation("org.valkyrienskies.core:impl:${rootProject.vs_core_version}")
-    implementation("org.valkyrienskies.core:api-game:${rootProject.vs_core_version}")
+    modApi("org.valkyrienskies:valkyrienskies-118-forge:$vs2_version") { transitive = false }
 
-    modImplementation("dev.latvian.mods:kubejs-forge:${kubejs_version}")
+    implementation("org.valkyrienskies.core:api:$vs_core_version")
+    implementation("org.valkyrienskies.core:api-game:$vs_core_version")
+    implementation("org.valkyrienskies.core:util:$vs_core_version")
+    implementation("org.valkyrienskies.core:impl:$vs_core_version")
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
-    // Add Kotlin for Forge.
-    forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887')
+    implementation "thedarkcolour:kotlinforforge:$forge_kotlin_version"
+
+    modImplementation("dev.latvian.mods:kubejs-forge:${kubejs_version}")
 }
 
 processResources {
@@ -86,17 +80,17 @@ shadowJar {
     exclude "architectury.common.json"
 
     configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
+    archiveClassifier.set "dev-shadow"
 }
 
 remapJar {
     input.set shadowJar.archiveFile
             dependsOn shadowJar
-            classifier "forge"
+    archiveClassifier.set null
 }
 
 jar {
-    classifier "dev"
+    archiveClassifier.set "dev"
 }
 
 sourcesJar {
