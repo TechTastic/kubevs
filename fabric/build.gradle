@@ -26,19 +26,16 @@ configurations {
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.8.5+kotlin.1.7.20")
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.10+kotlin.1.9.10")
 
-    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
+    include(modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}")
 
     modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}")
-    implementation("org.valkyrienskies.core:api:${rootProject.vs_core_version}")
-    implementation("org.valkyrienskies.core:impl:${rootProject.vs_core_version}")
-    implementation("org.valkyrienskies.core:api-game:${rootProject.vs_core_version}")
-
-    modImplementation("dev.latvian.mods:kubejs-fabric:${kubejs_version}")
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+
+    modImplementation("dev.latvian.mods:kubejs-fabric:${kubejs_version}")
 }
 
 processResources {
@@ -53,18 +50,18 @@ shadowJar {
     exclude "architectury.common.json"
 
     configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
+    archiveClassifier.set "dev-shadow"
 }
 
 remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
             dependsOn shadowJar
-            classifier "fabric"
+    archiveClassifier.set null
 }
 
 jar {
-    classifier "dev"
+    archiveClassifier.set "dev"
 }
 
 sourcesJar {

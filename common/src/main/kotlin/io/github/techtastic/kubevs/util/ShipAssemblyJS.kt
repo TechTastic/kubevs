@@ -4,7 +4,7 @@ import dev.latvian.mods.kubejs.level.ServerLevelJS
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.AABB
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
+import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
