@@ -13,6 +13,11 @@ plugins {
     id "com.modrinth.minotaur" version "2.4.5" apply false
 }
 
+// Determine the version
+String platform = String.valueOf(loader_platform).toLowerCase()
+
+version = minecraft_version + "-" + platform + "-" + mod_version
+
 architectury {
     minecraft = rootProject.minecraft_version
 }
@@ -32,6 +37,13 @@ subprojects {
         maven {
             name = "ParchmentMC"
             url = "https://maven.parchmentmc.org"
+        }
+        maven {
+            // saps.dev Maven (KubeJS and Rhino)
+            url = "https://maven.saps.dev/releases"
+            content {
+                includeGroup "dev.latvian.mods"
+            }
         }
     }
 
@@ -83,7 +95,7 @@ allprojects {
     apply plugin: "maven-publish"
 
     archivesBaseName = rootProject.archives_base_name
-    version = rootProject.mod_version
+    version = rootProject.version
     group = rootProject.maven_group
 
     repositories {
@@ -101,13 +113,6 @@ allprojects {
                     username = project.vs_maven_username
                     password = project.vs_maven_password
                 }
-            }
-        }
-        maven {
-            // saps.dev Maven (KubeJS and Rhino)
-            url = "https://maven.saps.dev/releases"
-            content {
-                includeGroup "dev.latvian.mods"
             }
         }
     }

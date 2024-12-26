@@ -8,5 +8,5 @@ enum class BlockTypeJS(val type: BlockType?) {
     SOLID(BlockTypeImpl.SOLID),
     WATER(BlockTypeImpl.WATER),
     LAVA(BlockTypeImpl.LAVA),
-    NONE(null);
+    NONE(null)
 }

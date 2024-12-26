@@ -1,18 +1,16 @@
-package io.github.techtastic.kubevs;
+package io.github.techtastic.kubevs.bindings;
 
 import dev.latvian.mods.kubejs.script.BindingsEvent;
-import io.github.techtastic.kubevs.util.BlockStateInfoJS;
 import org.valkyrienskies.core.util.VectorConversionsKt;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-public class KubeVSJavaIntegration {
+public class KubeVSJavaBindings {
     public static void addBindings(BindingsEvent event) {
         event.add("VSGameUtilsKt", VSGameUtilsKt.class);
         event.add("VectorConversionsKt", VectorConversionsKt.class);
         event.add("VectorConversionsMCKt", VectorConversionsMCKt.class);
-
-        if (event.type.isServer())
-            event.add("BlockStateInfo", BlockStateInfoJS.INSTANCE);
+        event.add("ShipAssemblyKt", ShipAssemblyKt.class);
     }
 }
