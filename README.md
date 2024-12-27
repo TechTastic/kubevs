@@ -82,14 +82,58 @@ This addon also adds new fields to Server, Level, and Player.
 
 ---
 
-### Startup Events
-#### vs.blockstate.info
+## Ship Events
+
+---
+### Server
+###### ShipEvents.load
+This event is fired upon a Ship initially being loaded on the server.
+```javascript
+// This code prints out the Slug of a Ship as the Ship is loaded.
+ShipEvents.load(event => {
+    var ship = event.getShipObjectServer()
+    console.log("Ship Name: " + ship.getSlug())
+})
+```
+
+###### ShipEvents.phys
+This event is fired upon the physics tick of a Ship.
+```javascript
+// This code flings the Ship up into the air along the world's Y axis by a force of 100x the Ship's mass in Newtons.
+ShipEvents.phys(event => {
+    event.physShip.applyInvariantForce(Vector3d(0.0, 100.0 * event.physShip.inertia.shipMass, 0.0))
+})
+```
+---
+### Client
+###### ShipEvents.load
+This event is fired upon a Ship being loaded on the client.
+```javascript
+// This code prints out the Slug of a Ship as the Ship is loaded.
+onEvent('vs.ship.load', event => {
+  var ship = event.getShipObjectClient()
+  console.log("Ship Name: " + ship.getSlug())
+})
+```
+
+###### ShipEvents.render
+This event is fired after a Ship is rendered.
+```javascript
+ShipEvents.render(event => {
+    var ship = event.getClientShip()
+    
+    // TBH, theres not much I can think of putting here.
+})
+```
+---
+### Startup
+###### ShipEvents.blockStateInfo
 This event is fired upon startup and cannot be cancelled.
 It is used to register callbacks to be called upon resolving mass and BlockTypes for BlockStates.
 
-This code sets all BlockStates to provide 0kg of mass and have the BlockType (and thus collision) of Air.
 ```javascript
-onEvent('vs.blockstate.info', event => {
+//This code sets all BlockStates to provide 0kg of mass and have the BlockType (and thus collision) of Air.
+ShipEvents.blockStateInfo(event => {
     event.mass(state => {
         return 0
     })
@@ -97,52 +141,5 @@ onEvent('vs.blockstate.info', event => {
     event.type(state => {
         return BlockType.AIR
     })
-})
-```
-
----
-
-### Server Events
-#### vs.ship.load
-This event is fired upon a Ship being loaded and cannot be cancelled.
-
-This code prints out the Slug of a Ship as the Ship is loaded.
-```javascript
-onEvent('vs.ship.load', event => {
-    var ship = event.getShipObjectServer()
-    console.log("Ship Name: " + ship.getSlug())
-})
-```
-
-#### vs.ship.phys
-This event is fired upon the physics tick of a Ship and cannot be cancelled.
-
-This code flings the Ship up into the air along the world's Y axis by a force of 100x the Ship's mass in Newtons.
-```javascript
-onEvent('vs.ship.phys', event => {
-    event.physShip.applyInvariantForce(Vector3d(0.0, 100.0 * event.physShip.inertia.shipMass, 0.0))
-})
-```
-
-### Client Events
-#### vs.ship.load
-This event is fired upon a Ship being loaded and cannot be cancelled.
-
-This code prints out the Slug of a Ship as the Ship is loaded.
-```javascript
-onEvent('vs.ship.load', event => {
-    var ship = event.getShipObjectClient()
-    console.log("Ship Name: " + ship.getSlug())
-})
-```
-
-#### vs.ship.render
-This event is fired after a Ship is rendered and cannot be cancelled.
-
-```javascript
-onEvent('vs.ship.load', event => {
-    var ship = event.getClientShip()
-    
-    // TBH, theres not much I can think of putting here.
 })
 ```

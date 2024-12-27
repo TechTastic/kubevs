@@ -1,10 +1,6 @@
 package io.github.techtastic.kubevs.forge
 
 import dev.architectury.platform.forge.EventBuses
-import dev.latvian.mods.kubejs.KubeJSEvents
-import dev.latvian.mods.kubejs.KubeJSOtherEventHandler
-import dev.latvian.mods.kubejs.KubeJSPlugin
-import dev.latvian.mods.kubejs.util.KubeJSPlugins
 import io.github.techtastic.kubevs.KubeVS.MOD_ID
 import io.github.techtastic.kubevs.KubeVS.init
 import io.github.techtastic.kubevs.KubeVS.initClient

@@ -1,4 +1,4 @@
-package io.github.techtastic.kubevs.plugin
+package io.github.techtastic.kubevs.event
 
 import dev.latvian.mods.kubejs.event.EventJS
 import io.github.techtastic.kubevs.registry.KubeVSBSIP
@@ -19,14 +19,10 @@ object KubeVSEvents {
 
     class ShipLoadServerEvent(val shipObjectServer: ShipObjectServer): EventJS() {
         constructor(event: VSEvents.ShipLoadEvent) : this(event.ship)
-
-        override fun canCancel() = false
     }
 
 
-    class KubeVSShipPhysTickEvent(val physShip: PhysShipImpl): EventJS() {
-        override fun canCancel() = false
-    }
+    class KubeVSShipPhysTickEvent(val physShip: PhysShipImpl): EventJS()
 
 
     // Client Events
@@ -34,15 +30,11 @@ object KubeVSEvents {
 
     class ShipLoadClientEvent(val shipObjectClient: ShipObjectClient): EventJS() {
         constructor(event: VSEvents.ShipLoadEventClient) : this(event.ship)
-
-        override fun canCancel() = false
     }
 
 
     class ShipRenderStartEvent(val clientShip: ClientShip): EventJS() {
         constructor(event: VSGameEvents.ShipRenderEvent) : this(event.ship)
-
-        override fun canCancel() = false
     }
 
 
@@ -57,7 +49,5 @@ object KubeVSEvents {
         fun type(callback: Function<BlockState, BlockTypeJS?>) {
             KubeVSBSIP.TYPE_CALLBACK = callback
         }
-
-        override fun canCancel() = false
     }
 }

@@ -15,7 +15,7 @@ dependencies {
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
     // Valkyrien Skies 2
-    modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-119-common:${rootProject.vs2_version}")
 
     // VS Core
     compileOnly("org.valkyrienskies.core:api:${rootProject.vs_core_version}")

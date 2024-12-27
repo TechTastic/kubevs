@@ -1,26 +1,21 @@
 package io.github.techtastic.kubevs.plugin
 
-import dev.architectury.event.EventResult
 import dev.latvian.mods.kubejs.KubeJSPlugin
-import dev.latvian.mods.kubejs.level.LevelJS
-import dev.latvian.mods.kubejs.player.PlayerDataJS
-import dev.latvian.mods.kubejs.player.PlayerJS
-import dev.latvian.mods.kubejs.script.AttachDataEvent
 import dev.latvian.mods.kubejs.script.BindingsEvent
-import dev.latvian.mods.kubejs.script.CustomJavaToJsWrappersEvent
 import dev.latvian.mods.kubejs.script.ScriptType
-import dev.latvian.mods.kubejs.server.ServerJS
+import dev.latvian.mods.kubejs.util.AttachedData
 import dev.latvian.mods.kubejs.util.ClassFilter
-import dev.latvian.mods.rhino.util.CustomJavaToJsWrapper
-import dev.latvian.mods.rhino.util.CustomJavaToJsWrapperProvider
-import dev.latvian.mods.rhino.util.wrap.TypeWrappers
 import io.github.techtastic.kubevs.bindings.KubeVSJavaBindings
+import io.github.techtastic.kubevs.bindings.event.ShipEvents
+import io.github.techtastic.kubevs.event.KubeVSEvents
 import io.github.techtastic.kubevs.registry.KubeVSBSIP
 import io.github.techtastic.kubevs.ship.KubeVSShipAccess
 import io.github.techtastic.kubevs.util.BlockTypeJS
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 import org.joml.*
 import org.joml.primitives.*
 import org.valkyrienskies.core.api.ships.*
@@ -32,7 +27,6 @@ import org.valkyrienskies.core.apigame.ships.ServerShipCore
 import org.valkyrienskies.core.apigame.world.ClientShipWorldCore
 import org.valkyrienskies.core.apigame.world.IPlayer
 import org.valkyrienskies.core.apigame.world.ServerShipWorldCore
-import org.valkyrienskies.core.apigame.world.chunks.BlockType
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.*
@@ -46,9 +40,7 @@ class KubeVSPlugin: KubeJSPlugin() {
         VSEvents.shipLoadEvent.on { event ->
             KubeVSShipAccess.getOrCreateAccess(event.ship)
 
-            if (KubeVSEvents.ShipLoadServerEvent(event).post(ScriptType.SERVER, "vs.ship.load", event.ship.id.toString()))
-                EventResult.interruptTrue()
-            EventResult.pass()
+            ShipEvents.LOAD_SERVER.post(KubeVSEvents.ShipLoadServerEvent(event), event.ship.id)
         }
     }
 
@@ -56,25 +48,27 @@ class KubeVSPlugin: KubeJSPlugin() {
         super.clientInit()
 
         VSEvents.shipLoadEventClient.on { event ->
-            if (KubeVSEvents.ShipLoadClientEvent(event).post(ScriptType.CLIENT, "vs.ship.load", event.ship.id.toString()))
-                EventResult.interruptTrue()
-            EventResult.pass()
+            ShipEvents.LOAD_CLIENT.post(KubeVSEvents.ShipLoadClientEvent(event), event.ship.id)
         }
 
         VSGameEvents.postRenderShip.on { event ->
-            if (KubeVSEvents.ShipRenderStartEvent(event).post(ScriptType.CLIENT, "vs.ship.render", event.ship.id.toString()))
-                EventResult.interruptTrue()
-            EventResult.pass()
+            ShipEvents.RENDER.post(KubeVSEvents.ShipRenderStartEvent(event), event.ship.id.toString())
         }
     }
 
     override fun initStartup() {
         super.initStartup()
 
-        KubeVSEvents.KubeVSBlockStateInfoEvent().post(ScriptType.STARTUP, "vs.blockstate.info")
+        ShipEvents.BLOCKSTATE_INFO.post(KubeVSEvents.KubeVSBlockStateInfoEvent())
     }
 
-    override fun addBindings(event: BindingsEvent) {
+    override fun registerEvents() {
+        ShipEvents.GROUP.register()
+
+        super.registerEvents()
+    }
+
+    override fun registerBindings(event: BindingsEvent) {
         event.add("Ship", Ship::class.java)
         event.add("LoadedShip", LoadedShip::class.java)
         event.add("LoadedShipCore", LoadedShipCore::class.java)
@@ -122,9 +116,11 @@ class KubeVSPlugin: KubeJSPlugin() {
         }
 
         KubeVSJavaBindings.addBindings(event)
+
+        super.registerBindings(event)
     }
 
-    override fun addClasses(type: ScriptType, filter: ClassFilter) {
+    override fun registerClasses(type: ScriptType, filter: ClassFilter) {
         filter.deny("org.valkyrienskies.mod.common.config")
         filter.deny(BlockStateInfoProvider::class.java)
         filter.deny(BlockStateInfo::class.java)
@@ -132,17 +128,19 @@ class KubeVSPlugin: KubeJSPlugin() {
 
         if (type.isServer)
             filter.allow("org.valkyrienskies.mod.common.BlockStateInfo.INSTANCE.get")
+
+        super.registerClasses(type, filter)
     }
 
-    override fun attachServerData(event: AttachDataEvent<ServerJS>) {
-        val server = event.parent.minecraftServer
+    override fun attachServerData(event: AttachedData<MinecraftServer>) {
+        val server = event.parent
 
         event.add("serverShipObjectWorld", server.shipObjectWorld)
         event.add("vsPipeline", server.vsPipeline)
     }
 
-    override fun attachLevelData(event: AttachDataEvent<LevelJS>) {
-        val level = event.parent.minecraftLevel
+    override fun attachLevelData(event: AttachedData<Level>) {
+        val level = event.parent
 
         event.add("shipObjectWorld", level.shipObjectWorld)
         event.add("allShips", level.allShips)
@@ -155,8 +153,8 @@ class KubeVSPlugin: KubeJSPlugin() {
             event.add("clientShipObjectWorld", level.shipObjectWorld)
     }
 
-    override fun attachPlayerData(event: AttachDataEvent<PlayerDataJS<Player, PlayerJS<Player>>>) {
-        val player = event.parent.minecraftPlayer
+    override fun attachPlayerData(event: AttachedData<Player>) {
+        val player = event.parent
 
         if (player is IPlayer)
             event.add("dimensionId", player.dimension)

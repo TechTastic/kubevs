@@ -45,5 +45,5 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "kubejs"
 mandatory = true
-versionRange = "[1802.5.5,)"
+versionRange = "[1902.6.2,)"
 ordering = "AFTER"
