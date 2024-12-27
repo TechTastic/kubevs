@@ -36,7 +36,7 @@ dependencies {
     modImplementation("me.shedaniel.cloth:cloth-config:${cloth_config_version}")
 
     // Valkyrien Skies 2
-    modApi("org.valkyrienskies:valkyrienskies-119-fabric:${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-120-fabric:${rootProject.vs2_version}")
 
     // KubeVS
     modImplementation("dev.latvian.mods:kubejs-fabric:${kubejs_version}")
