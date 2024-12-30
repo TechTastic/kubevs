@@ -23,6 +23,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import org.joml.*
 import org.joml.primitives.*
+import org.valkyrienskies.core.api.VsCoreApi
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.world.ClientShipWorld
 import org.valkyrienskies.core.api.world.ServerShipWorld
@@ -35,7 +36,10 @@ import org.valkyrienskies.core.apigame.world.ServerShipWorldCore
 import org.valkyrienskies.core.apigame.world.chunks.BlockType
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.mod.api.vsApi
+import org.valkyrienskies.mod.api_impl.events.VsApiImpl
 import org.valkyrienskies.mod.common.*
+import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.util.IEntityDraggingInformationProvider
 
@@ -129,6 +133,7 @@ class KubeVSPlugin: KubeJSPlugin() {
         filter.deny(BlockStateInfoProvider::class.java)
         filter.deny(BlockStateInfo::class.java)
         filter.deny(KubeVSBSIP::class.java)
+        filter.deny(VsCoreApi::class.java)
 
         if (type.isServer)
             filter.allow("org.valkyrienskies.mod.common.BlockStateInfo.INSTANCE.get")

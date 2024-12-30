@@ -5,9 +5,8 @@ import io.github.techtastic.kubevs.registry.KubeVSBSIP
 import io.github.techtastic.kubevs.util.BlockTypeJS
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
-import org.valkyrienskies.core.impl.game.ships.ShipObjectClient
-import org.valkyrienskies.core.impl.game.ships.ShipObjectServer
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import java.util.function.Function
@@ -17,7 +16,7 @@ object KubeVSEvents {
     // Server Events
 
 
-    class ShipLoadServerEvent(val shipObjectServer: ShipObjectServer): EventJS() {
+    class ShipLoadServerEvent(val loadedServerShip: LoadedServerShip): EventJS() {
         constructor(event: VSEvents.ShipLoadEvent) : this(event.ship)
 
         override fun canCancel() = false
@@ -32,7 +31,7 @@ object KubeVSEvents {
     // Client Events
 
 
-    class ShipLoadClientEvent(val shipObjectClient: ShipObjectClient): EventJS() {
+    class ShipLoadClientEvent(val clientShip: ClientShip): EventJS() {
         constructor(event: VSEvents.ShipLoadEventClient) : this(event.ship)
 
         override fun canCancel() = false
