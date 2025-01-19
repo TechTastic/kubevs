@@ -7,7 +7,7 @@ import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 
 class KubeVSShipAccess: ShipForcesInducer {
     override fun applyForces(physShip: PhysShip) {
-        KubeVSEvents.KubeVSShipPhysTickEvent(physShip as PhysShipImpl).post(ScriptType.SERVER, "vs.ship.phys", physShip.id.toString())
+        KubeVSEvents.KubeVSShipPhysTickEvent(physShip as PhysShipImpl).post(ScriptType.SERVER, "vs.ship.phys")
     }
 
     companion object {

@@ -46,7 +46,7 @@ class KubeVSPlugin: KubeJSPlugin() {
         VSEvents.shipLoadEvent.on { event ->
             KubeVSShipAccess.getOrCreateAccess(event.ship)
 
-            if (KubeVSEvents.ShipLoadServerEvent(event).post(ScriptType.SERVER, "vs.ship.load", event.ship.id.toString()))
+            if (KubeVSEvents.ShipLoadServerEvent(event).post(ScriptType.SERVER, "vs.ship.load"))
                 EventResult.interruptTrue()
             EventResult.pass()
         }
@@ -56,13 +56,13 @@ class KubeVSPlugin: KubeJSPlugin() {
         super.clientInit()
 
         VSEvents.shipLoadEventClient.on { event ->
-            if (KubeVSEvents.ShipLoadClientEvent(event).post(ScriptType.CLIENT, "vs.ship.load", event.ship.id.toString()))
+            if (KubeVSEvents.ShipLoadClientEvent(event).post(ScriptType.CLIENT, "vs.ship.load"))
                 EventResult.interruptTrue()
             EventResult.pass()
         }
 
         VSGameEvents.postRenderShip.on { event ->
-            if (KubeVSEvents.ShipRenderStartEvent(event).post(ScriptType.CLIENT, "vs.ship.render", event.ship.id.toString()))
+            if (KubeVSEvents.ShipRenderStartEvent(event).post(ScriptType.CLIENT, "vs.ship.render"))
                 EventResult.interruptTrue()
             EventResult.pass()
         }
