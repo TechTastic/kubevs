@@ -9,45 +9,62 @@ import io.github.techtastic.kubevs.bindings.KubeVSJavaBindings
 import io.github.techtastic.kubevs.bindings.event.ShipEvents
 import io.github.techtastic.kubevs.event.KubeVSEvents
 import io.github.techtastic.kubevs.registry.KubeVSBSIP
-import io.github.techtastic.kubevs.ship.KubeVSShipAccess
 import io.github.techtastic.kubevs.util.BlockTypeJS
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import org.joml.*
 import org.joml.primitives.*
-import org.valkyrienskies.core.api.ships.*
-import org.valkyrienskies.core.api.world.ClientShipWorld
-import org.valkyrienskies.core.api.world.ServerShipWorld
-import org.valkyrienskies.core.apigame.ships.ClientShipCore
-import org.valkyrienskies.core.apigame.ships.LoadedShipCore
-import org.valkyrienskies.core.apigame.ships.ServerShipCore
-import org.valkyrienskies.core.apigame.world.ClientShipWorldCore
-import org.valkyrienskies.core.apigame.world.IPlayer
-import org.valkyrienskies.core.apigame.world.ServerShipWorldCore
-import org.valkyrienskies.core.impl.hooks.VSEvents
+import org.valkyrienskies.core.api.VsBeta
+import org.valkyrienskies.core.api.util.GameTickOnly
+import org.valkyrienskies.core.api.util.PhysTickOnly
+import org.valkyrienskies.core.internal.world.VsiPlayer
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.mod.api.shipWorld
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.util.IEntityDraggingInformationProvider
 
 class KubeVSPlugin: KubeJSPlugin() {
+    @OptIn(GameTickOnly::class, VsBeta::class, PhysTickOnly::class)
     override fun init() {
         super.init()
 
-        VSEvents.shipLoadEvent.on { event ->
-            KubeVSShipAccess.getOrCreateAccess(event.ship)
+        vsApi.physTickEvent.on { event ->
+            ShipEvents.PHYS_TICK.post(KubeVSEvents.KubeVSPhysTickEvent(event))
+        }
 
+        vsApi.splitEvent.on { event ->
+            ShipEvents.SPLIT.post(KubeVSEvents.KubeVSSplitTickEvent(event))
+        }
+
+        vsApi.mergeEvent.on { event ->
+            ShipEvents.MERGE.post(KubeVSEvents.KubeVSMergeTickEvent(event))
+        }
+
+        vsApi.collisionStartEvent.on { event ->
+            ShipEvents.COLLISION_START.post(KubeVSEvents.KubeVSCollisionEvent(event))
+        }
+
+        vsApi.collisionPersistEvent.on { event ->
+            ShipEvents.COLLISION_PERSIST.post(KubeVSEvents.KubeVSCollisionEvent(event))
+        }
+
+        vsApi.collisionEndEvent.on { event ->
+            ShipEvents.COLLISION_END.post(KubeVSEvents.KubeVSCollisionEvent(event))
+        }
+
+        vsApi.shipLoadEvent.on { event ->
             ShipEvents.LOAD_SERVER.post(KubeVSEvents.ShipLoadServerEvent(event))
         }
     }
 
+    @OptIn(GameTickOnly::class, VsBeta::class)
     override fun clientInit() {
         super.clientInit()
 
-        VSEvents.shipLoadEventClient.on { event ->
+        vsApi.shipLoadEventClient.on { event ->
             ShipEvents.LOAD_CLIENT.post(KubeVSEvents.ShipLoadClientEvent(event))
         }
 
@@ -68,10 +85,9 @@ class KubeVSPlugin: KubeJSPlugin() {
         super.registerEvents()
     }
 
+    @OptIn(GameTickOnly::class)
     override fun registerBindings(event: BindingsEvent) {
-        event.add("Ship", Ship::class.java)
-        event.add("LoadedShip", LoadedShip::class.java)
-        event.add("LoadedShipCore", LoadedShipCore::class.java)
+        event.add("ValkyrienSkies", ValkyrienSkiesMod::class.java)
 
         event.add("Vector3i", Vector3i::class.java)
         event.add("Vector3ic", Vector3ic::class.java)
@@ -99,22 +115,6 @@ class KubeVSPlugin: KubeJSPlugin() {
         event.add("DenseBlockPosSet", DenseBlockPosSet::class.java)
         event.add("BlockType", BlockTypeJS::class.java)
 
-        if (event.type.isServer) {
-            event.add("ServerShip", ServerShip::class.java)
-            event.add("LoadedServerShip", LoadedServerShip::class.java)
-            event.add("ServerShipCore", ServerShipCore::class.java)
-            event.add("ServerShipWorld", ServerShipWorld::class.java)
-            event.add("ServerShipWorldCore", ServerShipWorldCore::class.java)
-            event.add("BlockStateInfo", BlockStateInfo::class.java)
-        }
-
-        if (event.type.isClient) {
-            event.add("ClientShip", ClientShip::class.java)
-            event.add("ClientShipCore", ClientShipCore::class.java)
-            event.add("ClientShipWorld", ClientShipWorld::class.java)
-            event.add("ClientShipWorldCore", ClientShipWorldCore::class.java)
-        }
-
         KubeVSJavaBindings.addBindings(event)
 
         super.registerBindings(event)
@@ -132,31 +132,30 @@ class KubeVSPlugin: KubeJSPlugin() {
         super.registerClasses(type, filter)
     }
 
+    @OptIn(GameTickOnly::class)
     override fun attachServerData(event: AttachedData<MinecraftServer>) {
         val server = event.parent
 
-        event.add("serverShipObjectWorld", server.shipObjectWorld)
+        event.add("shipObjectWorld", server.shipObjectWorld)
         event.add("vsPipeline", server.vsPipeline)
+        event.add("shipWorld", server.shipWorld)
     }
 
+    @OptIn(GameTickOnly::class)
     override fun attachLevelData(event: AttachedData<Level>) {
         val level = event.parent
 
         event.add("shipObjectWorld", level.shipObjectWorld)
         event.add("allShips", level.allShips)
         event.add("dimensionId", level.dimensionId)
+        event.add("shipWorld", level.shipWorld)
         event.add("shipWorldNullable", level.shipWorldNullable)
-
-        if (level is ServerLevel)
-            event.add("serverShipObjectWorld", level.shipObjectWorld)
-        if (level is ClientLevel)
-            event.add("clientShipObjectWorld", level.shipObjectWorld)
     }
 
     override fun attachPlayerData(event: AttachedData<Player>) {
         val player = event.parent
 
-        if (player is IPlayer)
+        if (player is VsiPlayer)
             event.add("dimensionId", player.dimension)
 
         if (player is IEntityDraggingInformationProvider)
